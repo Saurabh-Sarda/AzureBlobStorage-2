@@ -52,22 +52,19 @@ public class AzureApp
 	*    Then, update the storageConnectionString variable with your AccountName and Key and run the sample.
 	* *************************************************************************************************************************
 	*/
+
 	private static final String ROOT_FOLDER = "root folder";
 
-	public static final String accountName = "rztibloblstoragetest";
-	public static final String accountKey = "4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==";
+	public static final String accountName = "accountName";
 
-	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=rztibloblstoragetest;AccountKey=" +
-			"4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==;EndpointSuffix=core.windows.net";
+	public static final String accountKey = "accountKey";
 
-	//"DefaultEndpointsProtocol=https;" +
-	//"AccountName=<account-name>;" +
-	//"AccountKey=<account-key>";
+	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=rztibloblstoragetest;AccountKey=4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==;EndpointSuffix=core.windows.net";
 
-/*
 	public static void main( String[] args )
 	{
 		File sourceFile = null, downloadedFile = null;
+
 		System.out.println("Azure Blob storage quick start sample...");
 
 		CloudStorageAccount storageAccount;
@@ -76,115 +73,14 @@ public class AzureApp
 
 		try
 		{
-			// Parse the connection string and create a blob client to interact with Blob storage
+			// Parse the connection string and create a blob client to interact with Blob storage...
+
 			storageAccount = CloudStorageAccount.parse(storageConnectionString);
 			blobClient = storageAccount.createCloudBlobClient();
 			container = blobClient.getContainerReference("quickstartcontainer");
 
-			// Create the container if it does not exist with public access.
-			System.out.println("Creating container: " + container.getName());
-			container.createIfNotExists(BlobContainerPublicAccessType.CONTAINER, new BlobRequestOptions(), new OperationContext());
+			// Create the container if it does not exist with public access...
 
-			// Creating a sample directory
-			File files = new File("Directory");
-			files.mkdir();
-
-			// Create empty content
-			InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
-
-			// Creating a sample file
-			sourceFile = File.createTempFile("sampleFile", ".txt");
-			System.out.println("Creating a sample file at: " + sourceFile.toString());
-			Writer output = new BufferedWriter(new FileWriter(sourceFile));
-			output.write("Hello Azure!");
-			output.close();
-
-			// Getting a blob reference
-			CloudBlockBlob blob = container.getBlockBlobReference(files+"/"+sourceFile.getName());
-
-			blob.upload(emptyContent,0);
-
-			blob.deleteIfExists();
-
-			//Creating blob and uploading file to it
-			System.out.println("Uploading the sample file ");
-			blob.uploadFromFile(sourceFile.getAbsolutePath());
-
-			//Listing contents of container
-			for (ListBlobItem blobItem : container.listBlobs(files+"/"))
-			{
-				CloudBlockBlob srcBlob = container.getBlockBlobReference(blobItem.getUri().getPath());
-				System.out.println(srcBlob.getName());
-		    }
-
-		    // Download blob. In most cases, you would have to retrieve the reference
-		    // to cloudBlockBlob here. However, we created that reference earlier, and
-		    // haven't changed the blob we're interested in, so we can reuse it.
-			// Here we are creating a new file to download to. Alternatively you can also
-			// pass in the path as a string into downloadToFile method: blob.downloadToFile("/path/to/new/file").
-
-		downloadedFile = new File(sourceFile.getParentFile(), "downloadedFile.txt");
-		blob.downloadToFile(downloadedFile.getAbsolutePath());
-
-		blob.deleteIfExists();
-		}
-		catch (StorageException ex)
-		{
-			System.out.println(String.format("Error returned from the service. Http code: %d and error code: %s", ex.getHttpStatusCode(), ex.getErrorCode()));
-		}
-		catch (Exception ex) 
-		{
-			System.out.println(ex.getMessage());
-		}
-		finally 
-		{
-			System.out.println("The program has completed successfully.");
-			System.out.println("Press the 'Enter' key while in the console to delete the sample files, example container, and exit the application.");
-
-			//Pausing for input
-			Scanner sc = new Scanner(System.in);
-			sc.nextLine();
-
-			System.out.println("Deleting the container");
-			try {
-				if(container != null)
-					container.deleteIfExists();
-			}
-			catch (StorageException ex) {
-				System.out.println(String.format("Service error. Http code: %d and error code: %s", ex.getHttpStatusCode(), ex.getErrorCode()));
-			}
-
-			System.out.println("Deleting the source, and downloaded files");
-
-			if(downloadedFile != null)
-				downloadedFile.deleteOnExit();
-
-			if(sourceFile != null)
-				sourceFile.deleteOnExit();
-
-			//Closing scanner
-			sc.close();
-		}
-	}*/
-
-
-	public static void main( String[] args )
-	{
-		File sourceFile = null, downloadedFile = null;
-		System.out.println("Azure Blob storage quick start sample...");
-
-		CloudStorageAccount storageAccount;
-		CloudBlobClient blobClient = null;
-		CloudBlobContainer container = null;
-
-		try
-		{
-			// Parse the connection string and create a blob client to interact with Blob storage
-			storageAccount = CloudStorageAccount.parse(storageConnectionString);
-			blobClient = storageAccount.createCloudBlobClient();
-			container = blobClient.getContainerReference("quickstartcontainer");
-
-			// Create the container if it does not exist with public access.
 			System.out.println("Creating container: " + container.getName());
 			container.createIfNotExists(BlobContainerPublicAccessType.CONTAINER, new BlobRequestOptions(), new OperationContext());
 
@@ -233,17 +129,33 @@ public class AzureApp
 
 //			downloadFile(container, downloadRequest);
 
-			CreateBlobRequest deleteFileRequest = new CreateBlobRequest();
+//			CreateBlobRequest deleteFileRequest = new CreateBlobRequest();
+//
+//			deleteFileRequest.setName("TestingFile");
+//			deleteFileRequest.setContainerName("quickstartcontainer");
+//			deleteFileRequest.setParentPath("TestingFile/");
+//			deleteFileRequest.setBlob(true);
+//			deleteFileRequest.setFileDelimiter("/");
+//			deleteFileRequest.setStartIndex("0");
+//			deleteFileRequest.setMaxKeys(10);
 
-			deleteFileRequest.setName("TestingFile");
-			deleteFileRequest.setContainerName("quickstartcontainer");
-			deleteFileRequest.setParentPath("TestingFile/");
-			deleteFileRequest.setBlob(true);
-			deleteFileRequest.setFileDelimiter("/");
-			deleteFileRequest.setStartIndex("0");
-			deleteFileRequest.setMaxKeys(10);
+//			deleteFile(container, deleteFileRequest);
 
-			deleteFile(container, deleteFileRequest);
+			MoveFileRequest copyFileRequest = new MoveFileRequest();
+
+			copyFileRequest.setName("TestFolder");
+			copyFileRequest.setContainerName("quickstartcontainer");
+			copyFileRequest.setParentPath("/");
+			copyFileRequest.setBlob(true);
+			copyFileRequest.setFileDelimiter("/");
+			copyFileRequest.setStartIndex("0");
+			copyFileRequest.setMaxKeys(10);
+			copyFileRequest.setDestFileName("Folder");
+			copyFileRequest.setDestParentPath("Directory/");
+			copyFileRequest.setFolder(true);
+			copyFileRequest.setForceful(true);
+
+			copyFile(copyFileRequest, container);
 		}
 
 		catch (StorageException ex)
@@ -452,7 +364,7 @@ public class AzureApp
 
 				for (ListBlobItem blob : cloudBlobContainer.listBlobs(prefix))
 				{
-					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blob.getUri().getPath());
+					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
 
 					System.out.println(srcBlob.exists());
 
@@ -465,6 +377,169 @@ public class AzureApp
 		catch( Exception e )
 		{
 			throw new DataConnectorException(ExceptionMessageUtil.parseMessage(e.getMessage()), e);
+		}
+	}
+
+	public static void copyFile(MoveFileRequest copyFileRequest, CloudBlobContainer cloudBlobContainer)
+	{
+		try
+		{
+			FilePathUtil.isValidFileName(copyFileRequest.getSrcFileName());
+			FilePathUtil.isValidFileName(copyFileRequest.getDestFileName());
+
+			if( !isExists(cloudBlobContainer, new CreateBlobRequest(copyFileRequest.getSrcFileName(), copyFileRequest.getSrcParentPath(),
+					copyFileRequest.getContainerName(), copyFileRequest.isFolder())) )
+			{
+				throw new DataConnectorException(
+						"Source file " + copyFileRequest.getSrcFileName() + " doesn't exist in " + (StringUtils
+								.isEmpty(copyFileRequest.getParentPath()) ?
+								ROOT_FOLDER :
+								copyFileRequest.getParentPath()));
+			}
+			if( StringUtils.isEmpty(copyFileRequest.getDestFileName()) )
+			{
+				throw new DataConnectorException("Destination file name cannot be empty");
+			}
+			if( isExists(cloudBlobContainer, new CreateBlobRequest(copyFileRequest.getDestFileName(), copyFileRequest.getDestParentPath(),
+					copyFileRequest.getContainerName(), copyFileRequest.isFolder())) && !copyFileRequest
+					.isForceful() )
+			{
+				throw new DataConnectorException(
+						"Destination file " + copyFileRequest.getSrcFileName() + " already exist in " + (StringUtils
+								.isEmpty(copyFileRequest.getParentPath()) ?
+								ROOT_FOLDER :
+								copyFileRequest.getParentPath()) + ". Try forceful copy to replace it.");
+			}
+			if(copyFileRequest.isFolder()) {
+
+				recursiveCopy(cloudBlobContainer,copyFileRequest);
+			}
+			else
+			{
+				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(copyFileRequest.getSrcParentPath() + File.separator + copyFileRequest.getSrcFileName());
+				CloudBlockBlob destBlob = cloudBlobContainer.getBlockBlobReference(copyFileRequest.getDestParentPath() + File.separator + copyFileRequest.getDestFileName());
+
+				destBlob.startCopy(srcBlob);
+
+				waitForCopyToComplete(destBlob);
+
+			}
+			MoveFileResponse response = new MoveFileResponse();
+
+			response.setFolderName(copyFileRequest.getDestFileName());
+			response.setAbsolutePath(
+					copyFileRequest.getSrcParentPath() + File.separator + copyFileRequest.getDestFileName());
+			response.setParentPath(copyFileRequest.getParentPath());
+		}
+		catch(DataConnectorException | URISyntaxException | StorageException | InterruptedException e)
+		{
+			System.out.println(e.getMessage());
+		}
+	}
+
+	private static void recursiveCopy(CloudBlobContainer cloudBlobContainer , MoveFileRequest copyFileRequest) throws DataConnectorException {
+		try
+		{
+			for (ListBlobItem blob : cloudBlobContainer.listBlobs(copyFileRequest.getSrcParentPath()))
+			{
+				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
+
+				CloudBlockBlob destBlob = cloudBlobContainer.getBlockBlobReference(copyFileRequest.getDestParentPath()
+						+ File.separator + ((CloudBlockBlob) blob).getName().replace(copyFileRequest.getSrcParentPath(),""));
+
+				destBlob.startCopy(srcBlob);
+
+				waitForCopyToComplete(destBlob);
+			}
+		}
+		catch( Exception e )
+		{
+			throw new DataConnectorException("Sorry! Something went wrong while copying the file content");
+		}
+	}
+
+	private static void waitForCopyToComplete(CloudBlob blob) throws InterruptedException, StorageException {
+		CopyStatus copyStatus = CopyStatus.PENDING;
+
+		while (copyStatus == CopyStatus.PENDING) {
+
+			Thread.sleep(1000);
+
+			blob.downloadAttributes();
+
+			copyStatus = blob.getCopyState().getStatus();
+		}
+	}
+
+	public static void moveFile(MoveFileRequest moveFileRequest, CloudBlobContainer cloudBlobContainer)
+	{
+		try
+		{
+				deleteFile(cloudBlobContainer, new CreateBlobRequest(moveFileRequest.getSrcFileName(), moveFileRequest.getSrcParentPath(),
+						moveFileRequest.getContainerName(), moveFileRequest.isFolder()));
+
+			MoveFileResponse response = new MoveFileResponse();
+
+			response.setFolderName(moveFileRequest.getDestFileName());
+			response.setAbsolutePath(moveFileRequest.getSrcParentPath() + File.separator + moveFileRequest.getDestFileName());
+			response.setParentPath(moveFileRequest.getParentPath());
+		}
+		catch( StorageException e )
+		{
+			System.out.println(e.getMessage());
+		}
+	}
+
+	public static void previewFile(CloudBlobContainer cloudBlobContainer, CreateBlobRequest downloadRequest, FilePreviewRequest filePreviewRequestUI)
+			throws DataConnectorException
+	{
+		InputStream inputStream = null;
+
+		try
+		{
+			isExists(cloudBlobContainer, downloadRequest);
+
+			CloudBlob cloudBlob = cloudBlobContainer.getBlockBlobReference(
+					FilePathUtil.appendSlashIfNot(downloadRequest.getParentPath()) +
+							FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
+
+			// Process the InputStream...
+
+			inputStream = cloudBlob.openInputStream();
+
+
+			if( (cloudBlob.getProperties().getLength() / (1024 * 1024)) > 5 )
+			{
+				throw new DataConnectorException("Preview not supported for files with size more than 5MB");
+			}
+
+			 FileReadUtil.parseFileForPreview(inputStream, downloadRequest.getName(),
+					cloudBlob.getProperties().getLength() / 1024, filePreviewRequestUI);
+		}
+		catch( DataConnectorException e )
+		{
+			System.out.println(e.getMessage());
+			throw new DataConnectorException(ExceptionMessageUtil.parseMessage(e.getMessage()), e);
+		}
+		catch( Exception e )
+		{
+			System.out.println(e.getMessage());
+		}
+		finally
+		{
+			closeAzureObjectInputStream(inputStream);
+		}
+	}
+
+	private static void closeAzureObjectInputStream( InputStream objectData )
+	{
+		if( objectData != null )
+		{
+			try
+			{
+				objectData.close();
+			}
+			catch( IOException e ) {}
 		}
 	}
 }

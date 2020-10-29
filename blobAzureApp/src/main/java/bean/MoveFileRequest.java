@@ -9,9 +9,21 @@ public class MoveFileRequest extends BlobRequest
     private boolean forceful;
     private boolean isFolder = false;
 
-    public MoveFileRequest( String containerName, String srcFileName, String srcParentPath,
-                            String destFileName, String destParentPath, boolean forceful,
-                            boolean isFolder )
+    public void setDestFileName(String destFileName) {
+        this.destFileName = destFileName;
+    }
+
+    public void setDestParentPath(String destParentPath) {
+        this.destParentPath = destParentPath;
+    }
+
+    public void setForceful(boolean forceful) {
+        this.forceful = forceful;
+    }
+
+    public MoveFileRequest(String containerName, String srcFileName, String srcParentPath,
+                           String destFileName, String destParentPath, boolean forceful,
+                           boolean isFolder )
     {
         super(srcFileName, srcParentPath, containerName, isFolder);
         this.destFileName = destFileName;
@@ -19,6 +31,8 @@ public class MoveFileRequest extends BlobRequest
         this.forceful = forceful;
         this.isFolder = isFolder;
     }
+
+    public MoveFileRequest() {}
 
     public String getSrcFileName()
     {

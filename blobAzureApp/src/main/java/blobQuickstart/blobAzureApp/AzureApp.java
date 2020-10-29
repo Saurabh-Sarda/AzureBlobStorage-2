@@ -59,7 +59,7 @@ public class AzureApp
 
 	public static final String accountKey = "accountKey";
 
-	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=rztibloblstoragetest;AccountKey=4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==;EndpointSuffix=core.windows.net";
+	public static final String storageConnectionString = "storageConnectionString";
 
 	public static void main( String[] args )
 	{
@@ -68,7 +68,7 @@ public class AzureApp
 		System.out.println("Azure Blob storage quick start sample...");
 
 		CloudStorageAccount storageAccount;
-		CloudBlobClient blobClient = null;
+		CloudBlobClient blobClient;
 		CloudBlobContainer container = null;
 
 		try
@@ -84,11 +84,16 @@ public class AzureApp
 			System.out.println("Creating container: " + container.getName());
 			container.createIfNotExists(BlobContainerPublicAccessType.CONTAINER, new BlobRequestOptions(), new OperationContext());
 
-			// Creating a sample file
+			// Creating a sample file...
+
 //			sourceFile = File.createTempFile("sampleFile", ".txt");
+//
 //			System.out.println("Creating a sample file at: " + sourceFile.toString());
+//
 //			Writer output = new BufferedWriter(new FileWriter(sourceFile));
+//
 //			output.write("Hello Azure!");
+//
 //			output.close();
 
 //			CreateBlobRequest createBlobRequest = new CreateBlobRequest();
@@ -119,10 +124,10 @@ public class AzureApp
 
 //			CreateBlobRequest downloadRequest = new CreateBlobRequest();
 //
-//			downloadRequest.setName("TestAgain");
+//			downloadRequest.setName("sampleFile254743665331038531.txt");
 //			downloadRequest.setContainerName("quickstartcontainer");
 //			downloadRequest.setParentPath("/");
-//			downloadRequest.setBlob(true);
+//			downloadRequest.setBlob(false);
 //			downloadRequest.setFileDelimiter("/");
 //			downloadRequest.setStartIndex("0");
 //			downloadRequest.setMaxKeys(10);
@@ -141,21 +146,43 @@ public class AzureApp
 
 //			deleteFile(container, deleteFileRequest);
 
-			MoveFileRequest copyFileRequest = new MoveFileRequest();
+//			MoveFileRequest copyFileRequest = new MoveFileRequest();
+//
+//			copyFileRequest.setName("TestFolder");
+//			copyFileRequest.setContainerName("quickstartcontainer");
+//			copyFileRequest.setParentPath("/");
+//			copyFileRequest.setBlob(true);
+//			copyFileRequest.setFileDelimiter("/");
+//			copyFileRequest.setStartIndex("0");
+//			copyFileRequest.setMaxKeys(10);
+//			copyFileRequest.setDestFileName("Folder");
+//			copyFileRequest.setDestParentPath("Directory/");
+//			copyFileRequest.setFolder(true);
+//			copyFileRequest.setForceful(true);
 
-			copyFileRequest.setName("TestFolder");
-			copyFileRequest.setContainerName("quickstartcontainer");
-			copyFileRequest.setParentPath("/");
-			copyFileRequest.setBlob(true);
-			copyFileRequest.setFileDelimiter("/");
-			copyFileRequest.setStartIndex("0");
-			copyFileRequest.setMaxKeys(10);
-			copyFileRequest.setDestFileName("Folder");
-			copyFileRequest.setDestParentPath("Directory/");
-			copyFileRequest.setFolder(true);
-			copyFileRequest.setForceful(true);
+//			copyFile(copyFileRequest, container);
 
-			copyFile(copyFileRequest, container);
+//			moveFile(copyFileRequest, container);
+
+//			CreateBlobRequest previewFileRequest = new CreateBlobRequest();
+//
+//			previewFileRequest.setName("sampleFile254743665331038531.txt");
+//			previewFileRequest.setContainerName("quickstartcontainer");
+//			previewFileRequest.setParentPath("/");
+//			previewFileRequest.setBlob(false);
+//			previewFileRequest.setFileDelimiter("/");
+//			previewFileRequest.setStartIndex("0");
+//			previewFileRequest.setMaxKeys(10);
+//
+//			FilePreviewRequest filePreviewRequest = new FilePreviewRequest();
+//
+//			filePreviewRequest.setDelimiter("/");
+//			filePreviewRequest.setEscapeCharacter(null);
+//			filePreviewRequest.setHeaderEnabled(false);
+//			filePreviewRequest.setHeaderPosition(0);
+//			filePreviewRequest.setQuoteCharacter(null);
+
+//			previewFile(container, previewFileRequest, filePreviewRequest);
 		}
 
 		catch (StorageException ex)
@@ -301,13 +328,13 @@ public class AzureApp
 			isExists(cloudBlobContainer, new CreateBlobRequest(downloadRequest.getName(), downloadRequest.getParentPath(),
 					downloadRequest.getContainerName(), downloadRequest.isBlob()));
 
-			CloudBlob cloudBlob = cloudBlobContainer.getBlockBlobReference(
+			CloudBlockBlob cloudBlob = cloudBlobContainer.getBlockBlobReference(
 					FilePathUtil.appendSlashIfNot(downloadRequest.getParentPath()) +
-							 FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
+					         FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
+
+			cloudBlob.downloadAttributes();
 
 			int length = (int) cloudBlob.getProperties().getLength();
-
-			System.out.println(length);
 
 			byte[] file = new byte[length];
 
@@ -501,12 +528,11 @@ public class AzureApp
 
 			CloudBlob cloudBlob = cloudBlobContainer.getBlockBlobReference(
 					FilePathUtil.appendSlashIfNot(downloadRequest.getParentPath()) +
-							FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
+							 FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
 
 			// Process the InputStream...
 
 			inputStream = cloudBlob.openInputStream();
-
 
 			if( (cloudBlob.getProperties().getLength() / (1024 * 1024)) > 5 )
 			{

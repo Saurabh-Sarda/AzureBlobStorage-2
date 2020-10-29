@@ -454,6 +454,8 @@ public class AzureApp
 				{
 					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blob.getUri().getPath());
 
+					System.out.println(srcBlob.exists());
+
 					System.out.println(srcBlob.getName());
 
 					System.out.println(srcBlob.deleteIfExists());

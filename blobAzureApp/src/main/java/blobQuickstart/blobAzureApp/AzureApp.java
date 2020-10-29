@@ -61,7 +61,7 @@ public class AzureApp
 
 	public static final String accountKey = "accountKey";
 
-	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=rztibloblstoragetest;AccountKey=4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==;EndpointSuffix=core.windows.net";
+	public static final String storageConnectionString = "storageConnectionString";
 
 	public static void main( String[] args )
 	{

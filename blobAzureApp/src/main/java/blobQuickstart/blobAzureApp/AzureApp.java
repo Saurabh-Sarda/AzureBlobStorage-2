@@ -30,6 +30,8 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 /* *************************************************************************************************************************
 * Summary: This application demonstrates how to use the Blob Storage service.
@@ -69,7 +71,7 @@ public class AzureApp
 
 		CloudStorageAccount storageAccount;
 		CloudBlobClient blobClient;
-		CloudBlobContainer container = null;
+		CloudBlobContainer container;
 
 		try
 		{
@@ -183,6 +185,18 @@ public class AzureApp
 //			filePreviewRequest.setQuoteCharacter(null);
 
 //			previewFile(container, previewFileRequest, filePreviewRequest);
+
+			BlobRequest listRequest = new BlobRequest();
+
+			listRequest.setName("Directory");
+			listRequest.setContainerName("quickstartcontainer");
+			listRequest.setParentPath("/");
+			listRequest.setBlob(false);
+			listRequest.setFileDelimiter("/");
+			listRequest.setStartIndex("0");
+			listRequest.setMaxKeys(5);
+
+			listFiles(listRequest, container);
 		}
 
 		catch (StorageException ex)
@@ -393,10 +407,6 @@ public class AzureApp
 				{
 					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
 
-					System.out.println(srcBlob.exists());
-
-					System.out.println(srcBlob.getName());
-
 					System.out.println(srcBlob.deleteIfExists());
 				}
 			}
@@ -567,5 +577,132 @@ public class AzureApp
 			}
 			catch( IOException e ) {}
 		}
+	}
+
+	public static void listFiles(BlobRequest listFileRequest, CloudBlobContainer cloudBlobContainer)
+			throws DataConnectorException
+	{
+		ListFileResponse response = new ListFileResponse();
+		try
+		{
+			RztAzureObjectList objectList = listBlobContentsWithPagination(listFileRequest, cloudBlobContainer);
+
+			List<ListFileResponse.File> files = new ArrayList<>();
+
+			int totalFolders = 0;
+			int totalRegularFiles = 0;
+
+			for( RztAzureObject obj : objectList.getObjects() )
+			{
+				if( !obj.getFullObjectPath().equals(listFileRequest.getParentPath() + File.separator) )
+				{
+					if( obj.isFolder() )
+					{
+						totalFolders += 1;
+
+						files.add(new ListFileResponse.File(
+								FilePathUtil.getFileName(FilePathUtil.removeSlashIfEndsWith(obj.getFullObjectPath())),
+								0, true, null));
+					}
+					else
+					{
+						totalRegularFiles += 1;
+
+						files.add(new ListFileResponse.File(FilePathUtil.getFileName(obj.getFullObjectPath()),
+								obj.getSize(), false, obj.getLastModified()));
+					}
+				}
+			}
+			System.out.println(files.size());
+			System.out.println(files);
+
+			response.setTotalFolders(totalFolders);
+			response.setTotalRegularFiles(totalRegularFiles);
+			response.setHasMoreItems(objectList.isHasMoreItems());
+			response.setNextItemIndex(objectList.getNextItemIndex());
+			response.setFiles(files);
+		}
+		catch( Exception e )
+		{
+			System.out.println(e.getMessage());
+			throw new DataConnectorException(ExceptionMessageUtil.parseMessage(e.getMessage()), e);
+		}
+	}
+
+	public static RztAzureObjectList listBlobContentsWithPagination(BlobRequest listFileRequest, CloudBlobContainer cloudBlobContainer)
+			throws URISyntaxException, StorageException
+	{
+		if( StringUtils.isEmpty(listFileRequest.getFileDelimiter()) )
+		{
+			listFileRequest.setFileDelimiter("/");
+		}
+		if( listFileRequest.getMaxKeys() == 0 )
+		{
+			listFileRequest.setMaxKeys(100);
+		}
+
+		List<RztAzureObject> objectsList = new ArrayList<>();
+
+		long start = System.currentTimeMillis();
+		boolean isTopLevel = false;
+
+		if( listFileRequest.getParentPath().isEmpty() || listFileRequest.getParentPath().equals(listFileRequest.getFileDelimiter()) )
+		{
+			isTopLevel = true;
+		}
+		if( !listFileRequest.getParentPath().endsWith(listFileRequest.getFileDelimiter()) )
+		{
+			listFileRequest.setParentPath(listFileRequest.getParentPath() + listFileRequest.getFileDelimiter());
+		}
+
+		boolean isFolder = false;
+
+		if( isTopLevel )
+		{
+			for (ListBlobItem blob : cloudBlobContainer.listBlobs())
+			{
+				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
+
+				if(srcBlob.getName().endsWith("/"))
+					 isFolder = true;
+				System.out.println(srcBlob.getName());
+
+				srcBlob.downloadAttributes();
+
+				objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
+						srcBlob.getProperties().getLength(), isFolder));
+			}
+		}
+		else
+		{
+			if( listFileRequest.getParentPath().startsWith(File.separator) )
+			{
+				listFileRequest.setParentPath(listFileRequest.getParentPath().substring(1));
+			}
+			for (ListBlobItem blob : cloudBlobContainer.listBlobs(listFileRequest.getParentPath()))
+			{
+				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
+
+				if(srcBlob.getName().endsWith("/"))
+					isFolder = true;
+				System.out.println(srcBlob.getName());
+
+				srcBlob.downloadAttributes();
+
+				objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
+						srcBlob.getProperties().getLength(), isFolder));
+			}
+		}
+		System.out.println(objectsList.size());
+		System.out.println(objectsList);
+
+		long end = System.currentTimeMillis();
+
+		RztAzureObjectList razorThinkAzureObjectList = new RztAzureObjectList(objectsList, null,
+				(end - start));
+		razorThinkAzureObjectList.setNextItemIndex(null);
+		razorThinkAzureObjectList.setHasMoreItems(isTopLevel);
+
+		return razorThinkAzureObjectList;
 	}
 }

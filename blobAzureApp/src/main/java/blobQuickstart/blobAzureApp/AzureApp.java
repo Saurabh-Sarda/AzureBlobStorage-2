@@ -61,7 +61,7 @@ public class AzureApp
 
 	public static final String accountKey = "accountKey";
 
-	public static final String storageConnectionString = "storageConnectionString";
+	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=rztibloblstoragetest;AccountKey=4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==;EndpointSuffix=core.windows.net";
 
 	public static void main( String[] args )
 	{
@@ -138,9 +138,9 @@ public class AzureApp
 
 //			CreateBlobRequest deleteFileRequest = new CreateBlobRequest();
 //
-//			deleteFileRequest.setName("TestingFile");
+//			deleteFileRequest.setName("New Folder");
 //			deleteFileRequest.setContainerName("quickstartcontainer");
-//			deleteFileRequest.setParentPath("TestingFile/");
+//			deleteFileRequest.setParentPath("New Folder/");
 //			deleteFileRequest.setBlob(true);
 //			deleteFileRequest.setFileDelimiter("/");
 //			deleteFileRequest.setStartIndex("0");
@@ -190,8 +190,8 @@ public class AzureApp
 
 			listRequest.setName("Directory");
 			listRequest.setContainerName("quickstartcontainer");
-			listRequest.setParentPath("/");
-			listRequest.setBlob(false);
+			listRequest.setParentPath("Directory/");
+			listRequest.setBlob(true);
 			listRequest.setFileDelimiter("/");
 			listRequest.setStartIndex("0");
 			listRequest.setMaxKeys(5);
@@ -659,18 +659,30 @@ public class AzureApp
 
 		if( isTopLevel )
 		{
-			for (ListBlobItem blob : cloudBlobContainer.listBlobs())
+			for (ListBlobItem blobItem : cloudBlobContainer.listBlobs())
 			{
-				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
+				if (blobItem instanceof CloudBlobDirectory)
+				{
+					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blobItem.getUri().getPath());
 
-				if(srcBlob.getName().endsWith("/"))
-					 isFolder = true;
-				System.out.println(srcBlob.getName());
+					String[] folderName = srcBlob.getName().split("/");
 
-				srcBlob.downloadAttributes();
+					objectsList.add(new RztAzureObject(folderName[folderName.length-1]+"/", null, 0, true));
+				}
+				else
+				{
+					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blobItem).getName());
 
-				objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
-						srcBlob.getProperties().getLength(), isFolder));
+					if(srcBlob.getName().endsWith("/"))
+						isFolder = true;
+
+					System.out.println(srcBlob.getName());
+
+					srcBlob.downloadAttributes();
+
+					objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
+							srcBlob.getProperties().getLength(), isFolder));
+				}
 			}
 		}
 		else
@@ -679,9 +691,9 @@ public class AzureApp
 			{
 				listFileRequest.setParentPath(listFileRequest.getParentPath().substring(1));
 			}
-			for (ListBlobItem blob : cloudBlobContainer.listBlobs(listFileRequest.getParentPath()))
+			for (ListBlobItem blobItem : cloudBlobContainer.listBlobs(listFileRequest.getParentPath()))
 			{
-				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
+				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blobItem).getName());
 
 				if(srcBlob.getName().endsWith("/"))
 					isFolder = true;

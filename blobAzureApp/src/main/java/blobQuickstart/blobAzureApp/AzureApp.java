@@ -151,23 +151,23 @@ public class AzureApp
 
 			deleteFile(container, deleteFileRequest);
 */
-//			MoveFileRequest copyFileRequest = new MoveFileRequest();
-//
-//			copyFileRequest.setName("TestFolder");
-//			copyFileRequest.setContainerName("quickstartcontainer");
-//			copyFileRequest.setParentPath("/");
-//			copyFileRequest.setBlob(true);
-//			copyFileRequest.setFileDelimiter("/");
-//			copyFileRequest.setStartIndex("0");
-//			copyFileRequest.setMaxKeys(10);
-//			copyFileRequest.setDestFileName("Folder");
-//			copyFileRequest.setDestParentPath("Directory/");
-//			copyFileRequest.setFolder(true);
-//			copyFileRequest.setForceful(true);
+		 MoveFileRequest copyFileRequest = new MoveFileRequest();
 
-//			copyFile(copyFileRequest, container);
+			copyFileRequest.setName("file1.txt");
+			copyFileRequest.setContainerName("quickstartcontainer");
+			copyFileRequest.setParentPath("TestingFile");
+			copyFileRequest.setBlob(true);
+			copyFileRequest.setFileDelimiter("/");
+			//copyFileRequest.setStartIndex("0");
+			//copyFileRequest.setMaxKeys(10);
+			copyFileRequest.setDestFileName("NewFolder");
+			copyFileRequest.setDestParentPath("NewFolder/");
+			copyFileRequest.setFolder(true);
+			copyFileRequest.setForceful(true);
 
-//			moveFile(copyFileRequest, container);
+			//copyFile(copyFileRequest, container);
+
+			moveFile(copyFileRequest, container);
 
 //			CreateBlobRequest previewFileRequest = new CreateBlobRequest();
 //
@@ -226,10 +226,11 @@ public class AzureApp
 
 		if( isExists(cloudBlobContainer,
 				new CreateBlobRequest(createBlobRequest.getName(), createBlobRequest.getParentPath(), createBlobRequest.getContainerName(),
-						createBlobRequest.isBlob())) )
+						createBlobRequest.isBlob())))
 		{
-			throw new DataConnectorException("File/Folder already exist with name " + createBlobRequest.getName() + " in " + (StringUtils
-					.isEmpty(createBlobRequest.getParentPath()) ? ROOT_FOLDER : createBlobRequest.getParentPath()) + " .");
+				throw new DataConnectorException("File/Folder already exist with name " + createBlobRequest.getName() + " in " + (StringUtils
+						.isEmpty(createBlobRequest.getParentPath()) ? ROOT_FOLDER : createBlobRequest.getParentPath()) + " .");
+
 		}
 
 		// Create empty content...
@@ -498,12 +499,34 @@ public class AzureApp
 	private static void recursiveCopy(CloudBlobContainer cloudBlobContainer , MoveFileRequest copyFileRequest) throws DataConnectorException {
 		try
 		{
+			String parentPath = copyFileRequest.getParentPath();
 			for (ListBlobItem blob : cloudBlobContainer.listBlobs(copyFileRequest.getSrcParentPath()))
 			{
+				if(blob instanceof CloudBlobDirectory){
+					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blob.getUri().getPath());
+					String folderPath = srcBlob.getName().replace(cloudBlobContainer.getName(),"");
+					folderPath = FilePathUtil.removeSlashIfStartsWith(folderPath);
+					copyFileRequest.setParentPath(folderPath);
+
+					String[] list = folderPath.split(File.separator);
+
+					CreateBlobRequest createBlobRequest = new CreateBlobRequest(list[list.length -1], copyFileRequest.getDestParentPath()+copyFileRequest.getDestFileName() ,cloudBlobContainer.getName() ,
+							true);
+
+					try {
+						createFolder(createBlobRequest, cloudBlobContainer);
+					}
+					catch (DataConnectorException e){
+						//log.info("Folder already Created");
+					}
+					recursiveCopy(cloudBlobContainer,copyFileRequest);
+					continue;
+				}
+				parentPath = FilePathUtil.removeSlashIfStartsWith(parentPath);
 				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
 
 				CloudBlockBlob destBlob = cloudBlobContainer.getBlockBlobReference(copyFileRequest.getDestParentPath()
-						+ File.separator + ((CloudBlockBlob) blob).getName().replace(copyFileRequest.getSrcParentPath(),""));
+						+ File.separator + ((CloudBlockBlob) blob).getName().replace(parentPath,""));
 
 				destBlob.startCopy(srcBlob);
 

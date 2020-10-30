@@ -136,7 +136,7 @@ public class AzureApp
 
 //			downloadFile(container, downloadRequest);
 
-			CreateBlobRequest deleteFileRequest = new CreateBlobRequest();
+			/*CreateBlobRequest deleteFileRequest = new CreateBlobRequest();
 
 			deleteFileRequest.setName("TestFolder");
 			deleteFileRequest.setContainerName("quickstartcontainer");
@@ -147,7 +147,7 @@ public class AzureApp
 			deleteFileRequest.setMaxKeys(10);
 
 			deleteFile(container, deleteFileRequest);
-
+*/
 //			MoveFileRequest copyFileRequest = new MoveFileRequest();
 //
 //			copyFileRequest.setName("TestFolder");
@@ -186,17 +186,17 @@ public class AzureApp
 
 //			previewFile(container, previewFileRequest, filePreviewRequest);
 
-//			BlobRequest listRequest = new BlobRequest();
-//
-//			listRequest.setName("Directory");
-//			listRequest.setContainerName("quickstartcontainer");
-//			listRequest.setParentPath("Directory/");
-//			listRequest.setBlob(true);
-//			listRequest.setFileDelimiter("/");
-//			listRequest.setStartIndex("2");
-//			listRequest.setMaxKeys(4);
+			BlobRequest listRequest = new BlobRequest();
 
-//			listFiles(listRequest, container);
+			listRequest.setName("Directory");
+			listRequest.setContainerName("quickstartcontainer");
+			listRequest.setParentPath("TestingFile/");
+			listRequest.setBlob(true);
+			listRequest.setFileDelimiter("/");
+			listRequest.setStartIndex("13");
+			listRequest.setMaxKeys(8);
+
+			listFiles(listRequest, container);
 		}
 
 		catch (StorageException ex)
@@ -410,18 +410,14 @@ public class AzureApp
 						CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blob.getUri().getPath());
 
 						System.out.println(srcBlob.getName());
-
 						String folderPath = srcBlob.getName().replace(cloudBlobContainer.getName(),"");
 						folderPath = folderPath.startsWith(File.separator) ? folderPath.replaceFirst("/","") : folderPath;
 
 						deleteFileRequest.setParentPath(folderPath);
-
 						deleteFileRecursively(cloudBlobContainer, deleteFileRequest);
 
 						CloudBlockBlob directory = cloudBlobContainer.getBlockBlobReference(FilePathUtil.removeSlashIfEndsWith(folderPath));
-
 						directory.deleteIfExists();
-
 						continue;
 					}
 						CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
@@ -659,10 +655,10 @@ public class AzureApp
 		{
 			listFileRequest.setMaxKeys(100);
 		}
-		if( listFileRequest.getStartIndex().equals("0") )
+		/*if( listFileRequest.getStartIndex().equals("0") )
 		{
 			listFileRequest.setStartIndex("1");
-		}
+		}*/
 
 		List<RztAzureObject> objectsList = new ArrayList<>();
 
@@ -714,9 +710,10 @@ public class AzureApp
 
 					index++;
 
-					if(index >= Integer.parseInt(listFileRequest.getStartIndex()) && index <= listFileRequest.getMaxKeys())
+					if(index >= Integer.parseInt(listFileRequest.getStartIndex()) && index <= listFileRequest.getMaxKeys()) {
 						objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
 								srcBlob.getProperties().getLength(), isFolder));
+					}
 					if(index > listFileRequest.getMaxKeys())
 						break;
 				}
@@ -730,6 +727,13 @@ public class AzureApp
 			}
 			for (ListBlobItem blobItem : cloudBlobContainer.listBlobs(listFileRequest.getParentPath()))
 			{
+				index++;
+				if(index <= Integer.parseInt(listFileRequest.getStartIndex())){
+					continue;
+				}
+				if(index > listFileRequest.getMaxKeys() + Integer.parseInt(listFileRequest.getStartIndex()) ) {
+					break;
+				}
 				if (blobItem instanceof CloudBlobDirectory)
 				{
 					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blobItem.getUri().getPath());
@@ -738,12 +742,8 @@ public class AzureApp
 
 					String[] folderName = srcBlob.getName().split("/");
 
-					index++;
+					objectsList.add(new RztAzureObject(folderName[folderName.length-1]+"/", null, 0, true));
 
-					if(index >= Integer.parseInt(listFileRequest.getStartIndex()) && index <= listFileRequest.getMaxKeys())
-						objectsList.add(new RztAzureObject(folderName[folderName.length-1]+"/", null, 0, true));
-					if(index > listFileRequest.getMaxKeys())
-						break;
 				}
 				else
 				{
@@ -755,13 +755,10 @@ public class AzureApp
 
 					srcBlob.downloadAttributes();
 
-					index++;
 
-					if(index >= Integer.parseInt(listFileRequest.getStartIndex()) && index <= listFileRequest.getMaxKeys())
-						objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
+					objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
 								srcBlob.getProperties().getLength(), isFolder));
-					if(index > listFileRequest.getMaxKeys())
-						break;
+
 				}
 			}
 		}

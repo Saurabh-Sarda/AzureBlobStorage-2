@@ -675,95 +675,51 @@ public class AzureApp
 		}
 
 		boolean isFolder = false;
-
 		int index = 0;
 
+		Iterable<ListBlobItem> blobItems;
+
 		if( isTopLevel )
-		{
-			for (ListBlobItem blobItem : cloudBlobContainer.listBlobs())
-			{
-				if (blobItem instanceof CloudBlobDirectory)
-				{
-					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blobItem.getUri().getPath());
-
-					System.out.println(srcBlob.getName());
-
-					String[] folderName = srcBlob.getName().split("/");
-
-					index++;
-
-					if(index >= Integer.parseInt(listFileRequest.getStartIndex()) && index <= listFileRequest.getMaxKeys())
-						objectsList.add(new RztAzureObject(folderName[folderName.length-1]+"/", null, 0, true));
-					if(index > listFileRequest.getMaxKeys())
-						break;
-				}
-				else
-				{
-					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blobItem).getName());
-
-					if(srcBlob.getName().endsWith("/"))
-						isFolder = true;
-
-					System.out.println(srcBlob.getName());
-
-					srcBlob.downloadAttributes();
-
-					index++;
-
-					if(index >= Integer.parseInt(listFileRequest.getStartIndex()) && index <= listFileRequest.getMaxKeys()) {
-						objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
-								srcBlob.getProperties().getLength(), isFolder));
-					}
-					if(index > listFileRequest.getMaxKeys())
-						break;
-				}
-			}
-		}
+			blobItems = cloudBlobContainer.listBlobs();
 		else
 		{
 			if( listFileRequest.getParentPath().startsWith(File.separator) )
 			{
 				listFileRequest.setParentPath(listFileRequest.getParentPath().substring(1));
 			}
-			for (ListBlobItem blobItem : cloudBlobContainer.listBlobs(listFileRequest.getParentPath()))
+			blobItems = cloudBlobContainer.listBlobs(listFileRequest.getParentPath());
+		}
+
+		for (ListBlobItem blobItem : blobItems)
+		{
+			index++;
+
+			if(index <= Integer.parseInt(listFileRequest.getStartIndex()) )
+				continue;
+			if(index > listFileRequest.getMaxKeys() + Integer.parseInt(listFileRequest.getStartIndex()) )
+				break;
+
+			if (blobItem instanceof CloudBlobDirectory)
 			{
-				index++;
-				if(index <= Integer.parseInt(listFileRequest.getStartIndex())){
-					continue;
-				}
-				if(index > listFileRequest.getMaxKeys() + Integer.parseInt(listFileRequest.getStartIndex()) ) {
-					break;
-				}
-				if (blobItem instanceof CloudBlobDirectory)
-				{
-					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blobItem.getUri().getPath());
+				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blobItem.getUri().getPath());
 
-					System.out.println(srcBlob.getName());
+				String[] folderName = srcBlob.getName().split("/");
 
-					String[] folderName = srcBlob.getName().split("/");
+				objectsList.add(new RztAzureObject(folderName[folderName.length-1]+"/", null, 0, true));
+			}
+			else
+			{
+				CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blobItem).getName());
 
-					objectsList.add(new RztAzureObject(folderName[folderName.length-1]+"/", null, 0, true));
+				if(srcBlob.getName().endsWith("/"))
+					isFolder = true;
 
-				}
-				else
-				{
-					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blobItem).getName());
+				srcBlob.downloadAttributes();
 
-					if(srcBlob.getName().endsWith("/"))
-						isFolder = true;
-					System.out.println(srcBlob.getName());
-
-					srcBlob.downloadAttributes();
-
-
-					objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
-								srcBlob.getProperties().getLength(), isFolder));
-
-				}
+				objectsList.add(new RztAzureObject(srcBlob.getName(), srcBlob.getProperties().getLastModified(),
+						srcBlob.getProperties().getLength(), isFolder));
 			}
 		}
-		System.out.println(objectsList.size());
-		System.out.println(objectsList);
 
 		long end = System.currentTimeMillis();
 

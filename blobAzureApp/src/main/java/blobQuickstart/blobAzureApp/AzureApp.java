@@ -669,7 +669,7 @@ public class AzureApp
 			listFileRequest.setParentPath(listFileRequest.getParentPath() + listFileRequest.getFileDelimiter());
 		}
 
-		boolean isFolder = false;
+		boolean isFolder = false, hasMoreItems = true;
 		int index = 0;
 
 		Iterable<ListBlobItem> blobItems;
@@ -692,7 +692,10 @@ public class AzureApp
 			if(index <= Integer.parseInt(listFileRequest.getStartIndex()) )
 				continue;
 			if(index > listFileRequest.getMaxKeys() + Integer.parseInt(listFileRequest.getStartIndex()) )
+			{
+				hasMoreItems = false;
 				break;
+			}
 
 			if (blobItem instanceof CloudBlobDirectory)
 			{
@@ -720,8 +723,8 @@ public class AzureApp
 
 		RztAzureObjectList razorThinkAzureObjectList = new RztAzureObjectList(objectsList, null,
 				(end - start));
-		razorThinkAzureObjectList.setNextItemIndex(null);
-		razorThinkAzureObjectList.setHasMoreItems(false);
+		razorThinkAzureObjectList.setNextItemIndex(String.valueOf(index + 1));
+		razorThinkAzureObjectList.setHasMoreItems(hasMoreItems);
 
 		return razorThinkAzureObjectList;
 	}

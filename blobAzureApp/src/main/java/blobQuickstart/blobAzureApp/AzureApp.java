@@ -27,6 +27,8 @@ import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.blob.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -34,32 +36,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 /* *************************************************************************************************************************
-* Summary: This application demonstrates how to use the Blob Storage service.
-* It does so by creating a container, creating a file, then uploading that file, listing all files in a container, 
-* and downloading the file. Then it deletes all the resources it created
-* 
-* Documentation References:
-* Associated Article - https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-java
-* What is a Storage Account - http://azure.microsoft.com/en-us/documentation/articles/storage-whatis-account/
-* Getting Started with Blobs - http://azure.microsoft.com/en-us/documentation/articles/storage-dotnet-how-to-use-blobs/
-* Blob Service Concepts - http://msdn.microsoft.com/en-us/library/dd179376.aspx 
-* Blob Service REST API - http://msdn.microsoft.com/en-us/library/dd135733.aspx
-* *************************************************************************************************************************
-*/
-public class AzureApp 
+ * Summary: This application demonstrates how to use the Blob Storage service.
+ * It does so by creating a container, creating a file, then uploading that file, listing all files in a container,
+ * and downloading the file. Then it deletes all the resources it created
+ *
+ * Documentation References:
+ * Associated Article - https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-java
+ * What is a Storage Account - http://azure.microsoft.com/en-us/documentation/articles/storage-whatis-account/
+ * Getting Started with Blobs - http://azure.microsoft.com/en-us/documentation/articles/storage-dotnet-how-to-use-blobs/
+ * Blob Service Concepts - http://msdn.microsoft.com/en-us/library/dd179376.aspx
+ * Blob Service REST API - http://msdn.microsoft.com/en-us/library/dd135733.aspx
+ * *************************************************************************************************************************
+ */
+public class AzureApp
 {
 	/* *************************************************************************************************************************
-	* Instructions: Start an Azure storage emulator, such as Azurite, before running the app.
-	*    Alternatively, remove the "UseDevelopmentStorage=true;"; string and uncomment the 3 commented lines.
-	*    Then, update the storageConnectionString variable with your AccountName and Key and run the sample.
-	* *************************************************************************************************************************
-	*/
+	 * Instructions: Start an Azure storage emulator, such as Azurite, before running the app.
+	 *    Alternatively, remove the "UseDevelopmentStorage=true;"; string and uncomment the 3 commented lines.
+	 *    Then, update the storageConnectionString variable with your AccountName and Key and run the sample.
+	 * *************************************************************************************************************************
+	 */
 
 	private static final String ROOT_FOLDER = "root folder";
 
 	public static final String accountName = "accountName";
 
 	public static final String accountKey = "accountKey";
+
+	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=rztibloblstoragetest;AccountKey=4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==;EndpointSuffix=core.windows.net";
 
 
 	public static void main( String[] args )
@@ -192,10 +196,13 @@ public class AzureApp
 			listRequest.setParentPath("TestingFile/");
 			listRequest.setBlob(true);
 			listRequest.setFileDelimiter("/");
-			listRequest.setStartIndex("13");
-			listRequest.setMaxKeys(8);
+			listRequest.setStartIndex("0");
+			listRequest.setMaxKeys(30);
 
-			listFiles(listRequest, container);
+			//listFiles(listRequest, container);
+
+			searchFiles(container,listRequest,"sample");
+
 		}
 
 		catch (StorageException ex)
@@ -343,7 +350,7 @@ public class AzureApp
 
 			CloudBlockBlob cloudBlob = cloudBlobContainer.getBlockBlobReference(
 					FilePathUtil.appendSlashIfNot(downloadRequest.getParentPath()) +
-					         FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
+							FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
 
 			cloudBlob.downloadAttributes();
 
@@ -419,9 +426,9 @@ public class AzureApp
 						directory.deleteIfExists();
 						continue;
 					}
-						CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
+					CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
 
-						System.out.println(srcBlob.deleteIfExists());
+					System.out.println(srcBlob.deleteIfExists());
 				}
 			}
 		}
@@ -526,8 +533,8 @@ public class AzureApp
 	{
 		try
 		{
-				deleteFile(cloudBlobContainer, new CreateBlobRequest(moveFileRequest.getSrcFileName(), moveFileRequest.getSrcParentPath(),
-						moveFileRequest.getContainerName(), moveFileRequest.isFolder()));
+			deleteFile(cloudBlobContainer, new CreateBlobRequest(moveFileRequest.getSrcFileName(), moveFileRequest.getSrcParentPath(),
+					moveFileRequest.getContainerName(), moveFileRequest.isFolder()));
 
 			MoveFileResponse response = new MoveFileResponse();
 
@@ -552,7 +559,7 @@ public class AzureApp
 
 			CloudBlob cloudBlob = cloudBlobContainer.getBlockBlobReference(
 					FilePathUtil.appendSlashIfNot(downloadRequest.getParentPath()) +
-							 FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
+							FilePathUtil.removeSlashIfEndsWith(downloadRequest.getName()));
 
 			// Process the InputStream...
 
@@ -563,7 +570,7 @@ public class AzureApp
 				throw new DataConnectorException("Preview not supported for files with size more than 5MB");
 			}
 
-			 FileReadUtil.parseFileForPreview(inputStream, downloadRequest.getName(),
+			FileReadUtil.parseFileForPreview(inputStream, downloadRequest.getName(),
 					cloudBlob.getProperties().getLength() / 1024, filePreviewRequestUI);
 		}
 		catch( DataConnectorException e )
@@ -669,7 +676,7 @@ public class AzureApp
 			listFileRequest.setParentPath(listFileRequest.getParentPath() + listFileRequest.getFileDelimiter());
 		}
 
-		boolean isFolder = false, hasMoreItems = true;
+		boolean isFolder = false, hasMoreItems = false;
 		int index = 0;
 
 		Iterable<ListBlobItem> blobItems;
@@ -693,7 +700,9 @@ public class AzureApp
 				continue;
 			if(index > listFileRequest.getMaxKeys() + Integer.parseInt(listFileRequest.getStartIndex()) )
 			{
-				hasMoreItems = false;
+				if(blobItem != null){
+					hasMoreItems = true;
+				}
 				break;
 			}
 
@@ -723,9 +732,91 @@ public class AzureApp
 
 		RztAzureObjectList razorThinkAzureObjectList = new RztAzureObjectList(objectsList, null,
 				(end - start));
-		razorThinkAzureObjectList.setNextItemIndex(String.valueOf(index + 1));
+		razorThinkAzureObjectList.setNextItemIndex(String.valueOf(index));
 		razorThinkAzureObjectList.setHasMoreItems(hasMoreItems);
 
 		return razorThinkAzureObjectList;
+	}
+
+	public static ListFileResponse searchFiles(CloudBlobContainer cloudBlobContainer, BlobRequest listFileRequest, String searchKey)
+			throws DataConnectorException
+	{
+
+		ListFileResponse response = new ListFileResponse();
+		try
+		{
+			int maxKeys = listFileRequest.getMaxKeys();
+			MutableInt searchCount = new MutableInt();
+			searchCount.setValue(0);
+			if( maxKeys == 0 )
+			{
+				maxKeys = 100;
+			}
+			List<ListFileResponse.File> files = new ArrayList<>();
+
+			response.setTotalFolders(0);
+			response.setTotalRegularFiles(0);
+
+			String nextIndex = listFileRequest.getStartIndex();
+			boolean hasMoreItems = true;
+			while( hasMoreItems && listFileRequest.getMaxKeys() > searchCount.getValue() )
+			{
+				RztAzureObjectList objectList = listBlobContentsWithPagination(listFileRequest, cloudBlobContainer);
+				MutableBoolean searchMore = new MutableBoolean();
+				searchMore.setTrue();
+				searchFiles(objectList, listFileRequest, searchKey, searchMore, searchCount, files, response);
+				nextIndex = objectList.getNextItemIndex();
+				hasMoreItems = objectList.isHasMoreItems();
+				if( !searchMore.booleanValue() )
+				{
+					break;
+				}
+
+			}
+			//set HasMoreItems for the search result
+			response.setHasMoreItems(searchCount.getValue() >= listFileRequest.getMaxKeys() && hasMoreItems);
+			response.setNextItemIndex(nextIndex);
+			response.setFiles(files);
+		}
+		catch( Exception e )
+		{
+			System.out.println(e.getMessage());
+			throw new DataConnectorException(ExceptionMessageUtil.parseMessage(e.getMessage()), e);
+		}
+		return response;
+	}
+
+	private static void searchFiles(RztAzureObjectList objectList, BlobRequest listFileRequest, String searchKey,
+									MutableBoolean searchMore, MutableInt searchCount, List<ListFileResponse.File> files,
+									ListFileResponse response )
+	{
+		for( RztAzureObject obj : objectList.getObjects() )
+		{
+			if( !obj.getFullObjectPath().equals(listFileRequest.getParentPath() + File.separator) )
+			{
+				String fileName = FilePathUtil.getFileName(FilePathUtil.removeSlashIfEndsWith(obj.getFullObjectPath()));
+				if( fileName.contains(searchKey) )
+				{
+					if( searchCount.getValue() >= listFileRequest.getMaxKeys() )
+					{
+						searchMore.setFalse();
+						objectList.setNextItemIndex(fileName);
+						objectList.setHasMoreItems(true);
+						break;
+					}
+					searchCount.setValue(searchCount.getValue() + 1);
+					if( obj.isFolder() )
+					{
+						response.setTotalFolders(response.getTotalFolders() + 1);
+						files.add(new ListFileResponse.File(fileName, 0, true, null));
+					}
+					else
+					{
+						response.setTotalRegularFiles(response.getTotalRegularFiles() + 1);
+						files.add(new ListFileResponse.File(fileName, obj.getSize(), false, obj.getLastModified()));
+					}
+				}
+			}
+		}
 	}
 }

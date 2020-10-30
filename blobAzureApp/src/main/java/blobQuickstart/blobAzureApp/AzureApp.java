@@ -61,7 +61,6 @@ public class AzureApp
 
 	public static final String accountKey = "accountKey";
 
-	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=rztibloblstoragetest;AccountKey=4c1uewpVdHwNGzx+7ZyXEdbBUbDXcm5ymj6oa1BbFV+X1I5Qqsc2oldZI02HabSDzhDj80rkmHATzUUMR+i9cw==;EndpointSuffix=core.windows.net";
 
 	public static void main( String[] args )
 	{
@@ -655,10 +654,6 @@ public class AzureApp
 		{
 			listFileRequest.setMaxKeys(100);
 		}
-		/*if( listFileRequest.getStartIndex().equals("0") )
-		{
-			listFileRequest.setStartIndex("1");
-		}*/
 
 		List<RztAzureObject> objectsList = new ArrayList<>();
 

@@ -410,14 +410,18 @@ public class AzureApp
 						CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(blob.getUri().getPath());
 
 						System.out.println(srcBlob.getName());
+
 						String folderPath = srcBlob.getName().replace(cloudBlobContainer.getName(),"");
 						folderPath = folderPath.startsWith(File.separator) ? folderPath.replaceFirst("/","") : folderPath;
 
 						deleteFileRequest.setParentPath(folderPath);
+
 						deleteFileRecursively(cloudBlobContainer, deleteFileRequest);
 
 						CloudBlockBlob directory = cloudBlobContainer.getBlockBlobReference(FilePathUtil.removeSlashIfEndsWith(folderPath));
+
 						directory.deleteIfExists();
+
 						continue;
 					}
 						CloudBlockBlob srcBlob = cloudBlobContainer.getBlockBlobReference(((CloudBlockBlob) blob).getName());
